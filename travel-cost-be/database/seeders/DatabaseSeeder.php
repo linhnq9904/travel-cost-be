@@ -10,6 +10,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             ExpenseCategorySeeder::class,
+            // UserSeeder::class,
+            ProfileSeeder::class,
+            TripSeeder::class,
+            // ExpenseSeeder::class,
         ]);
     }
 }

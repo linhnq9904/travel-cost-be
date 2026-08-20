@@ -2,17 +2,33 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
+    use HasFactory, HasUuids, Notifiable;
+
+    protected $fillable = [
+        'email',
+        'password',
+        'status',
+        'last_login_at',
+    ];
+
+    protected $hidden = [
+        'password',
+    ];
+
+    protected $casts = [
+        'last_login_at' => 'datetime',
+    ];
+
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
@@ -20,53 +36,47 @@ class User extends Authenticatable
 
     public function trips(): HasMany
     {
-        return $this->hasMany(Trip::class);
+        return $this->hasMany(Trip::class, 'owner_id');
     }
 
-    public function expenses(): HasMany
-    {
-        return $this->hasMany(Expense::class);
-    }
-
-    public function tripMembers(): HasMany
+    public function tripMemberships(): HasMany
     {
         return $this->hasMany(TripMember::class);
     }
-    
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function joinedTrips(): BelongsToMany
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsToMany(Trip::class, 'trip_members')
+            ->withPivot('role', 'joined_at');
+    }
+
+    public function expensesPaid(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'paid_by');
+    }
+
+    public function expenseParticipations(): HasMany
+    {
+        return $this->hasMany(ExpenseParticipant::class);
+    }
+
+    public function settlementsSent(): HasMany
+    {
+        return $this->hasMany(Settlement::class, 'from_user');
+    }
+
+    public function settlementsReceived(): HasMany
+    {
+        return $this->hasMany(Settlement::class, 'to_user');
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(AppNotification::class);
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 }
