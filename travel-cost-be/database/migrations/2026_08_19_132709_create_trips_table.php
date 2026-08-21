@@ -6,34 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('trips', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('user_id')
-                ->constrained('users')
-                ->cascadeOnDelete();
-
-            $table->string('name');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('owner_id')->constrained('users')->cascadeOnDelete();
+            $table->string('title');
             $table->text('description')->nullable();
-            $table->string('destination')->nullable();
-
+            $table->string('destination');
             $table->date('start_date');
             $table->date('end_date');
-
             $table->decimal('budget', 15, 2)->default(0);
-
+            $table->string('currency', 10)->default('VND');
+            $table->enum('status', ['Planning', 'Ongoing', 'Finished'])->default('Planning');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('trips');

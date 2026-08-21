@@ -10,18 +10,18 @@ class ProfileSeeder extends Seeder
 {
     public function run(): void
     {
-        $users = User::all();
-
-        foreach ($users as $user) {
-            Profile::updateOrCreate(
+        User::all()->each(function (User $user) {
+            Profile::firstOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'full_name' => $user->name ?? 'User',
+                    'full_name' => fake()->name(),
                     'avatar' => null,
-                    'phone' => null,
-                    'date_of_birth' => null,
+                    'phone' => fake()->unique()->phoneNumber(),
+                    'date_of_birth' => fake()->date('Y-m-d', '2005-01-01'),
+                    'gender' => fake()->randomElement(['MALE', 'FEMALE', 'OTHER']),
+                    'address' => fake()->address(),
                 ]
             );
-        }
+        });
     }
 }

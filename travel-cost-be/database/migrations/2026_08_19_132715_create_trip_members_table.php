@@ -6,35 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('trip_members', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('trip_id')
-                ->constrained('trips')
-                ->cascadeOnDelete();
-
-            $table->foreignId('user_id')
-                ->constrained('users')
-                ->cascadeOnDelete();
-
-            $table->enum('role', ['owner', 'member'])
-                ->default('member');
-
-            $table->timestamp('joined_at')
-                ->useCurrent();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('trip_id')->constrained('trips')->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->enum('role', ['Owner', 'Admin', 'Member'])->default('Member');
+            $table->timestamp('joined_at')->useCurrent();
 
             $table->unique(['trip_id', 'user_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('trip_members');

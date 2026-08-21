@@ -9,11 +9,17 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            ExpenseCategorySeeder::class,
-            // UserSeeder::class,
+            UserSeeder::class,
             ProfileSeeder::class,
+            ExpenseCategorySeeder::class,
             TripSeeder::class,
-            // ExpenseSeeder::class,
+            TripMemberSeeder::class,
+            ExpenseSeeder::class,
+            ExpenseParticipantSeeder::class,
+            SettlementSeeder::class,
+            AttachmentSeeder::class,
+            NotificationSeeder::class,
+            ActivityLogSeeder::class,
         ]);
     }
 }

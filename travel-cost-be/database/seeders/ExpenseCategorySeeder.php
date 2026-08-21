@@ -2,56 +2,27 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ExpenseCategory;
+use Illuminate\Database\Seeder;
 
 class ExpenseCategorySeeder extends Seeder
 {
     public function run(): void
     {
-        ExpenseCategory::insert([
-            [
-                'name' => 'Ăn uống',
-                'icon' => 'utensils',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Di chuyển',
-                'icon' => 'car',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Khách sạn',
-                'icon' => 'hotel',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Vé tham quan',
-                'icon' => 'ticket',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Mua sắm',
-                'icon' => 'shopping-bag',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Giải trí',
-                'icon' => 'gamepad',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Khác',
-                'icon' => 'ellipsis',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        $categories = [
+            ['name' => 'Ăn uống', 'icon' => 'food', 'color' => '#FF5733'],
+            ['name' => 'Di chuyển', 'icon' => 'transport', 'color' => '#33A1FF'],
+            ['name' => 'Lưu trú', 'icon' => 'hotel', 'color' => '#33FF57'],
+            ['name' => 'Vé tham quan', 'icon' => 'ticket', 'color' => '#FFC300'],
+            ['name' => 'Mua sắm', 'icon' => 'shopping', 'color' => '#C70039'],
+            ['name' => 'Khác', 'icon' => 'other', 'color' => '#900C3F'],
+        ];
+
+        foreach ($categories as $category) {
+            ExpenseCategory::firstOrCreate(
+                ['name' => $category['name']],
+                $category
+            );
+        }
     }
 }
