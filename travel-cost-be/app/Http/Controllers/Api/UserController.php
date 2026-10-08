@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Resources\UserResource;
+use App\Http\Requests\User\UpdateUserRequest;
 
 class UserController extends Controller
 {
@@ -15,21 +16,14 @@ class UserController extends Controller
 
         return new UserResource($user);
     }
-    public function update(Request $request)
+    public function update(UpdateUserRequest $request)
     {
-        $user = request()->user();
-
-        $validated = $request->validate([
-            'email' => 'sometimes|email|unique:users,email,' . $user->id,
-            'password' => 'sometimes|string|min:8|confirmed',
-        ]);
-
+        $validated = $request->validated();
+        $user = $request->user();
         if (isset($validated['password'])) {
             $validated['password'] = bcrypt($validated['password']);
         }
-
         $user->update($validated);
-
         return new UserResource($user);
     }
 }
