@@ -26,4 +26,10 @@ class UserController extends Controller
         $user->update($validated);
         return new UserResource($user);
     }
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
+
+        return new UserResource($user);
+    }
 }

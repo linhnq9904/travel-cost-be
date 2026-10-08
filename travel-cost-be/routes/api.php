@@ -13,6 +13,7 @@ Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);
         Route::get('/user', [UserController::class, 'me']);
+        Route::get('/user/{id}', [UserController::class, 'show']);
         Route::put('/user', [UserController::class, 'update']);
     });
 });
