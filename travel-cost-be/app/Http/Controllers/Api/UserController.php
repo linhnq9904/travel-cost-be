@@ -10,7 +10,7 @@ use App\Http\Requests\User\UpdateUserRequest;
 
 class UserController extends Controller
 {
-    public function me(Request $request)
+    public function user(Request $request)
     {
         $user = $request->user();
 
