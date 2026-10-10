@@ -18,7 +18,7 @@ Route::prefix('auth')->group(function () {
         Route::put('/user', [UserController::class, 'update']);
         Route::patch('/user/{id}', [UserController::class, 'updateById']);
         Route::get('/profile', [ProfileController::class, 'profile']);
-        Route::put('/profile', [ProfileController::class, 'updateProfile']);
+        Route::patch('/profile', [ProfileController::class, 'updateProfile']);
     });
 });
 Route::middleware('auth:sanctum')->group(function () {
