@@ -15,6 +15,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/user', [UserController::class, 'me']);
         Route::get('/user/{id}', [UserController::class, 'show']);
         Route::put('/user', [UserController::class, 'update']);
+        Route::patch('/user/{id}', [UserController::class, 'updateById']);
     });
 });
 Route::middleware('auth:sanctum')->group(function () {

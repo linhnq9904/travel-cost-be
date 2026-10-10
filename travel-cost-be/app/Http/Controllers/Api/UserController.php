@@ -32,4 +32,18 @@ class UserController extends Controller
 
         return new UserResource($user);
     }
+    public function updateById(UpdateUserRequest $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $authUser = $request->user();
+        if ($authUser->id !== $user->id) {
+            abort(403, 'Bạn không có quyền cập nhật tài khoản này.');
+        }
+        $validated = $request->validated();
+        if (isset($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        }
+        $user->update($validated);
+        return new UserResource($user->fresh());
+    }
 }
