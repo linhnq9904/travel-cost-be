@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TripMember;
 use App\Models\Trip;
 use App\Http\Requests\TripMember\StoreTripMemberRequest;
+use App\Http\Requests\TripMember\UpdateTripMemberRequest;
 use Illuminate\Http\Request;
 
 class TripMemberController extends Controller
@@ -62,5 +63,27 @@ class TripMemberController extends Controller
         $member->delete();
 
         return response()->json(['message' => 'Xóa thành viên thành công'], 200);
+    }
+
+    public function update(UpdateTripMemberRequest $request, $tripId, $userId)
+    {
+        $trip = Trip::findOrFail($tripId);
+        $member = TripMember::where('trip_id', $trip->id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        // Check if the authenticated user is the owner of the trip
+        if ($request->user()->id !== $trip->owner_id) {
+            return response()->json(['message' => 'Bạn không có quyền cập nhật thành viên này'], 403);
+        }
+
+        $validated = $request->validated();
+
+        $member->update($validated);
+
+        return response()->json([
+            'message' => 'Cập nhật vai trò thành viên thành công',
+            'data' => $member,
+        ], 200);
     }
 }

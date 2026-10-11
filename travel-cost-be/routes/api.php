@@ -23,6 +23,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/trips/{tripId}/members', [TripMemberController::class, 'store']);
         Route::get('/trips/{tripId}/members', [TripMemberController::class, 'tripMembers']);
         Route::delete('/trips/{tripId}/members/{userId}', [TripMemberController::class, 'destroy']);
+        Route::patch('/trips/{tripId}/members/{userId}', [TripMemberController::class, 'update']);
     }); 
 });
 Route::middleware('auth:sanctum')->group(function () {
