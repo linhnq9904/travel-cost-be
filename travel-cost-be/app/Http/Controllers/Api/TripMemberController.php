@@ -47,4 +47,20 @@ class TripMemberController extends Controller
         ], 200);
     }
 
+    public function destroy(Request $request, $tripId, $userId)
+    {
+        $trip = Trip::findOrFail($tripId);
+        $member = TripMember::where('trip_id', $trip->id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        // Check if the authenticated user is the owner of the trip or the member themselves
+        if ($request->user()->id !== $trip->owner_id && $request->user()->id !== $member->user_id) {
+            return response()->json(['message' => 'Bạn không có quyền xóa thành viên này'], 403);
+        }
+
+        $member->delete();
+
+        return response()->json(['message' => 'Xóa thành viên thành công'], 200);
+    }
 }
