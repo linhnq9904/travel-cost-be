@@ -24,7 +24,7 @@ class StoreTripMemberRequest extends FormRequest
     {
         return [
             'user_id' => 'required|uuid|exists:users,id',
-            'role' => 'sometimes|in:member,admin',
+            'role' => 'sometimes|in:Member,Admin',
         ];
     }
 }

@@ -23,7 +23,7 @@ class UpdateTripMemberRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role' => 'required|in:member,admin',
+            'role' => 'required|in:Member,Admin',
         ];
     }
 }
