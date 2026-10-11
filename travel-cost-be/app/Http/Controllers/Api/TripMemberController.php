@@ -7,14 +7,18 @@ use App\Models\TripMember;
 use App\Models\Trip;
 use App\Http\Requests\TripMember\StoreTripMemberRequest;
 use App\Http\Requests\TripMember\UpdateTripMemberRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 
 class TripMemberController extends Controller
 {
     public function store(StoreTripMemberRequest $request)
     {
+
         $validated = $request->validated();
         $tripId = $request->route('tripId');
+        $trip = Trip::findOrFail($tripId);
+        Gate::authorize('create', [TripMember::class, $trip]);
 
         $exists = TripMember::where('trip_id', $tripId)
             ->Where('user_id', $validated['user_id'])
@@ -27,7 +31,7 @@ class TripMemberController extends Controller
         $member = TripMember::create([
             'trip_id' => $tripId,
             'user_id' => $validated['user_id'],
-            'role' => $validated['role'] ?? 'member',
+            'role' => $validated['role'] ?? 'Member',
             'joined_at' => now(),
         ]);
 
@@ -40,7 +44,7 @@ class TripMemberController extends Controller
     public function tripMembers($tripId)
     {
         $trip = Trip::findOrFail($tripId);
-
+        Gate::authorize('viewAny', [TripMember::class, $trip]);
         $members = TripMember::where('trip_id', $trip->id)->with('user')->get();
 
         return response()->json([
@@ -54,11 +58,7 @@ class TripMemberController extends Controller
         $member = TripMember::where('trip_id', $trip->id)
             ->where('user_id', $userId)
             ->firstOrFail();
-
-        // Check if the authenticated user is the owner of the trip or the member themselves
-        if ($request->user()->id !== $trip->owner_id && $request->user()->id !== $member->user_id) {
-            return response()->json(['message' => 'Bạn không có quyền xóa thành viên này'], 403);
-        }
+        Gate::authorize('delete', $member);
 
         $member->delete();
 
@@ -71,11 +71,7 @@ class TripMemberController extends Controller
         $member = TripMember::where('trip_id', $trip->id)
             ->where('user_id', $userId)
             ->firstOrFail();
-
-        // Check if the authenticated user is the owner of the trip
-        if ($request->user()->id !== $trip->owner_id) {
-            return response()->json(['message' => 'Bạn không có quyền cập nhật thành viên này'], 403);
-        }
+        Gate::authorize('update', $member);
 
         $validated = $request->validated();
 
