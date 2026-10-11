@@ -14,7 +14,6 @@ class TripMemberController extends Controller
     {
         $validated = $request->validated();
         $tripId = $request->route('tripId');
-        // $trip = Trip::findOrFail($tripId);
 
         $exists = TripMember::where('trip_id', $tripId)
             ->Where('user_id', $validated['user_id'])
@@ -37,6 +36,15 @@ class TripMemberController extends Controller
         ], 201);
 
     }
+    public function tripMembers($tripId)
+    {
+        $trip = Trip::findOrFail($tripId);
 
+        $members = TripMember::where('trip_id', $trip->id)->with('user')->get();
+
+        return response()->json([
+            'data' => $members,
+        ], 200);
+    }
 
 }

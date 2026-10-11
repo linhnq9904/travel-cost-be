@@ -21,6 +21,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/profile', [ProfileController::class, 'profile']);
         Route::patch('/profile', [ProfileController::class, 'updateProfile']);
         Route::post('/trips/{tripId}/members', [TripMemberController::class, 'store']);
+        Route::get('/trips/{tripId}/members', [TripMemberController::class, 'tripMembers']);
     });
 });
 Route::middleware('auth:sanctum')->group(function () {
