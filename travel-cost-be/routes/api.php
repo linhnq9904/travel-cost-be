@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\TripMemberController;
+use App\Http\Middleware\EnsureTripMember;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -20,11 +21,13 @@ Route::prefix('auth')->group(function () {
         Route::patch('/user/{id}', [UserController::class, 'updateById']);
         Route::get('/profile', [ProfileController::class, 'profile']);
         Route::patch('/profile', [ProfileController::class, 'updateProfile']);
-        Route::post('/trips/{tripId}/members', [TripMemberController::class, 'store']);
-        Route::get('/trips/{tripId}/members', [TripMemberController::class, 'tripMembers']);
-        Route::delete('/trips/{tripId}/members/{userId}', [TripMemberController::class, 'destroy']);
-        Route::patch('/trips/{tripId}/members/{userId}', [TripMemberController::class, 'update']);
-    }); 
+        Route::middleware(EnsureTripMember::class)->group(function () {
+            Route::post('/trips/{tripId}/members', [TripMemberController::class, 'store']);
+            Route::get('/trips/{tripId}/members', [TripMemberController::class, 'tripMembers']);
+            Route::delete('/trips/{tripId}/members/{userId}', [TripMemberController::class, 'destroy']);
+            Route::patch('/trips/{tripId}/members/{userId}', [TripMemberController::class, 'update']);
+        });
+    });
 });
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('trips', TripController::class);
