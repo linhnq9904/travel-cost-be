@@ -87,12 +87,12 @@ class TripMemberPolicy
     {
         $trip = $tripMember->trip;
 
-        if ($user->id === $tripMember->user_id) {
+        if ($tripMember->role === 'Owner') {
             return false;
         }
 
-        if ($tripMember->role === 'Owner') {
-            return false;
+        if ($user->id === $tripMember->user_id) {
+            return true;
         }
 
         if ($this->isOwner($user, $trip)) {
