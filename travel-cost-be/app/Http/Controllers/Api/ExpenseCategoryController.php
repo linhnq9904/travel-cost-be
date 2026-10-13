@@ -15,4 +15,10 @@ class ExpenseCategoryController extends Controller
         $category = ExpenseCategory::create($validatedData);
         return response()->json(['message' => 'Expense category created successfully', 'data' => $category], 201);
     }
+
+    public function index()
+    {
+        $categories = ExpenseCategory::orderBy('name')->get();
+        return response()->json(['data' => $categories], 200);
+    }
 }

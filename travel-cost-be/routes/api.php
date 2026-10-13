@@ -38,4 +38,5 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('expense-categories', [ExpenseCategoryController::class, 'store']);
+    Route::get('expense-categories', [ExpenseCategoryController::class, 'index']);
 });
