@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\ExpenseCategory;
+use App\Models\Trip;
 use Illuminate\Database\Seeder;
 
 class ExpenseCategorySeeder extends Seeder
@@ -17,12 +18,22 @@ class ExpenseCategorySeeder extends Seeder
             ['name' => 'Mua sắm', 'icon' => 'shopping', 'color' => '#C70039'],
             ['name' => 'Khác', 'icon' => 'other', 'color' => '#900C3F'],
         ];
+        $trips = Trip::all();
 
-        foreach ($categories as $category) {
-            ExpenseCategory::firstOrCreate(
-                ['name' => $category['name']],
-                $category
-            );
+        foreach ($trips as $trip) {
+            foreach ($categories as $category) {
+                ExpenseCategory::firstOrCreate(
+                    [
+                        'trip_id' => $trip->id,
+                        'name' => $category['name']
+                    ],
+                    $category
+                );
+
+            }
         }
+
+
+
     }
 }

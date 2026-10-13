@@ -12,13 +12,14 @@ class ExpenseCategoryController extends Controller
     public function store(StoreExpenseCategoryRequest $request)
     {
         $validatedData = $request->validated();
+        $validatedData['trip_id'] = $request->route('tripId');
         $category = ExpenseCategory::create($validatedData);
         return response()->json(['message' => 'Expense category created successfully', 'data' => $category], 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $categories = ExpenseCategory::orderBy('name')->get();
+        $categories = ExpenseCategory::orderBy('name')->where('trip_id', $request->route('tripId'))->get();
         return response()->json(['data' => $categories], 200);
     }
 }

@@ -35,8 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('trips/{tripId}/members', [TripMemberController::class, 'tripMembers']);
         Route::delete('trips/{tripId}/members/{userId}', [TripMemberController::class, 'destroy']);
         Route::patch('trips/{tripId}/members/{userId}', [TripMemberController::class, 'update']);
-    });
 
-    Route::post('expense-categories', [ExpenseCategoryController::class, 'store']);
-    Route::get('expense-categories', [ExpenseCategoryController::class, 'index']);
+        Route::post('trips/{tripId}/expense-categories', [ExpenseCategoryController::class, 'store']);
+        Route::get('trips/{tripId}/expense-categories', [ExpenseCategoryController::class, 'index']);
+    });
 });

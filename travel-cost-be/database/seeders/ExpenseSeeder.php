@@ -11,12 +11,12 @@ class ExpenseSeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = ExpenseCategory::all();
 
-        Trip::with('members')->get()->each(function (Trip $trip) use ($categories) {
+        Trip::with('members')->get()->each(function (Trip $trip) {
+            $categories = ExpenseCategory::where('trip_id', $trip->id)->get();
             $memberIds = $trip->members->pluck('user_id');
 
-            if ($memberIds->isEmpty()) {
+            if ($memberIds->isEmpty() || $categories->isEmpty()) {
                 return;
             }
 

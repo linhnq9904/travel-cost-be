@@ -11,9 +11,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             ProfileSeeder::class,
-            ExpenseCategorySeeder::class,
             TripSeeder::class,
             TripMemberSeeder::class,
+            ExpenseCategorySeeder::class,
             ExpenseSeeder::class,
             ExpenseParticipantSeeder::class,
             SettlementSeeder::class,

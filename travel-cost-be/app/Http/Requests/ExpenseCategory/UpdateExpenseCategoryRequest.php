@@ -12,7 +12,7 @@ class UpdateExpenseCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,9 @@ class UpdateExpenseCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:100|unique:expense_categories,name,' . $this->route('id'),
+            'icon' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:20',
         ];
     }
 }
