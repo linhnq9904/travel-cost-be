@@ -7,6 +7,7 @@ use App\Http\Requests\ExpenseCategory\StoreExpenseCategoryRequest;
 use App\Http\Requests\ExpenseCategory\UpdateExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Resources\ExpenseCategoryResource;
 use Illuminate\Http\Request;
 
 class ExpenseCategoryController extends Controller
@@ -16,13 +17,13 @@ class ExpenseCategoryController extends Controller
         $validatedData = $request->validated();
         $validatedData['trip_id'] = $request->route('tripId');
         $category = ExpenseCategory::create($validatedData);
-        return response()->json(['message' => 'Expense category created successfully', 'data' => $category], 201);
+        return response()->json(['message' => 'Expense category created successfully', 'data' => new ExpenseCategoryResource($category)], 201);
     }
 
     public function index(Request $request)
     {
         $categories = ExpenseCategory::orderBy('name')->where('trip_id', $request->route('tripId'))->get();
-        return response()->json(['data' => $categories], 200);
+        return response()->json(['data' => ExpenseCategoryResource::collection($categories)], 200);
     }
     public function update(UpdateExpenseCategoryRequest $request)
     {
@@ -32,7 +33,7 @@ class ExpenseCategoryController extends Controller
 
         $validated = $request->validated();
         $category->update($validated);
-        return response()->json(['data' => $category], 200);
+        return response()->json(['data' => new ExpenseCategoryResource($category)], 200);
     }
     public function destroy(Request $request)
     {
