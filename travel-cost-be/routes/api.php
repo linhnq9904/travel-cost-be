@@ -39,5 +39,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('trips/{tripId}/expense-categories', [ExpenseCategoryController::class, 'store']);
         Route::get('trips/{tripId}/expense-categories', [ExpenseCategoryController::class, 'index']);
         Route::patch('trips/{tripId}/expense-categories/{categoryId}', [ExpenseCategoryController::class, 'update']);
+        Route::delete('trips/{tripId}/expense-categories/{categoryId}', [ExpenseCategoryController::class, 'destroy']);
     });
 });

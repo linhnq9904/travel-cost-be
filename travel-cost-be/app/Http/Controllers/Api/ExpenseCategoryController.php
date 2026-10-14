@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ExpenseCategory\StoreExpenseCategoryRequest;
 use App\Http\Requests\ExpenseCategory\UpdateExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 
 class ExpenseCategoryController extends Controller
@@ -32,5 +33,15 @@ class ExpenseCategoryController extends Controller
         $validated = $request->validated();
         $category->update($validated);
         return response()->json(['data' => $category], 200);
+    }
+    public function destroy(Request $request)
+    {
+        $category = ExpenseCategory::where('id', $request->route('categoryId'))
+            ->where('trip_id', $request->route('tripId'))
+            ->firstOrFail();
+        Gate::authorize('delete', $category);
+        $category->expenses()->exists();
+        $category->delete();
+        return response()->json(['message' => 'Expense category deleted successfully'], 200);
     }
 }

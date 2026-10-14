@@ -52,7 +52,14 @@ class ExpenseCategoryPolicy
      */
     public function delete(User $user, ExpenseCategory $expenseCategory): bool
     {
-        return false;
+        $tripId = $expenseCategory->trip_id;
+        $canDelete = TripMember::whereIn('role', ['Owner', 'Admin'])
+            ->where('user_id', $user->id)
+            ->where('trip_id', $tripId)
+            ->exists();
+
+        return $canDelete;
+
     }
 
     /**
