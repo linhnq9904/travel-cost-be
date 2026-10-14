@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\ExpenseCategory;
 
+use App\Models\ExpenseCategory;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateExpenseCategoryRequest extends FormRequest
 {
@@ -12,7 +14,11 @@ class UpdateExpenseCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $tripId = $this->route('tripId');
+        $categoryId = $this->route('categoryId');
+        $category = ExpenseCategory::where('id', $categoryId)->where('trip_id', $tripId)->firstOrFail();
+
+        return $this->user()->can('update', $category);
     }
 
     /**
@@ -22,10 +28,24 @@ class UpdateExpenseCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
+
+        $tripId = $this->route('tripId');
+        $category = ExpenseCategory::where('id', $this->route('categoryId'))
+            ->where('trip_id', $tripId)
+            ->firstOrFail();
+
         return [
-            'name' => 'required|string|max:100|unique:expense_categories,name,' . $this->route('id'),
-            'icon' => 'nullable|string|max:100',
-            'color' => 'nullable|string|max:20',
+            'name' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('expense_categories', 'name')
+                    ->where('trip_id', $tripId)
+                    ->ignore($category),
+            ],
+            'icon' => 'sometimes|nullable|string|max:100',
+            'color' => 'sometimes|nullable|string|max:20',
         ];
     }
 }
