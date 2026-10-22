@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\TripMemberController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Middleware\EnsureTripMember;
 use Illuminate\Support\Facades\Route;
 
@@ -40,5 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('trips/{tripId}/expense-categories', [ExpenseCategoryController::class, 'index']);
         Route::patch('trips/{tripId}/expense-categories/{categoryId}', [ExpenseCategoryController::class, 'update']);
         Route::delete('trips/{tripId}/expense-categories/{categoryId}', [ExpenseCategoryController::class, 'destroy']);
+
+        Route::post('trips/{tripId}/expenses', [ExpenseController::class, 'store']);
     });
 });
