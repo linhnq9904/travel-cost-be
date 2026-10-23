@@ -27,10 +27,23 @@ class StoreExpenseRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'idempotency_key' => $this->header('Idempotency-Key'),
+        ]);
+    }
+
     public function rules(): array
     {
+
         $tripId = $this->route('tripId');
         return [
+            'idempotency_key' => [
+                'required',
+                'uuid',
+            ],
             'category_id' => [
                 'required',
                 'integer',
