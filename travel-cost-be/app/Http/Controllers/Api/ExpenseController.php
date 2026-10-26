@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
 use App\Http\Requests\Expense\StoreExpenseRequest;
+use App\Http\Requests\Expense\UpdateExpenseRequest;
 use App\Models\IdempotencyKey;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
@@ -126,5 +127,23 @@ class ExpenseController extends Controller
             'Message' => 'Expenses retrieved successfully',
             'data' => $expenses,
         ]);
+    }
+    public function update(UpdateExpenseRequest $request, $tripId, $expenseId)
+    {
+        $tripId = $request->route('tripId');
+        $expenseId = $request->route('expenseId');
+
+        $expense = Expense::query()
+            ->where('trip_id', $tripId)
+            ->where('id', $expenseId)
+            ->firstOrFail();
+
+        $expense->update($request->validated());
+
+        return response()->json([
+            'message' => 'Expense updated successfully',
+            'data' => $expense->fresh(),
+        ]);
+
     }
 }
