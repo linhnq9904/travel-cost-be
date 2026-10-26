@@ -8,6 +8,8 @@ use App\Http\Requests\Expense\StoreExpenseRequest;
 use App\Models\IdempotencyKey;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
+use Nette\Schema\Message;
 
 class ExpenseController extends Controller
 {
@@ -95,4 +97,20 @@ class ExpenseController extends Controller
             ], 200);
         }
     }
+    public function index(Request $request)
+    {
+        $tripId = $request->route('tripId');
+
+        $expenses = Expense::query()
+            ->where('trip_id', $tripId)
+            ->orderByDesc('expense_date')
+            ->orderByDesc('id')
+            ->paginate(15);
+
+        return response()->json([
+            'Message' => 'Expenses retrieved successfully',
+            'data' => $expenses,
+        ]);
+    }
+
 }
