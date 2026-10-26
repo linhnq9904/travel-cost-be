@@ -112,5 +112,19 @@ class ExpenseController extends Controller
             'data' => $expenses,
         ]);
     }
+    public function show(Request $request)
+    {
+        $tripId = $request->route('tripId');
+        $expenseId = $request->route('expenseId');
 
+        $expenses = Expense::query()
+            ->where('trip_id', $tripId)
+            ->where('id', $expenseId)
+            ->firstOrFail();
+
+        return response()->json([
+            'Message' => 'Expenses retrieved successfully',
+            'data' => $expenses,
+        ]);
+    }
 }

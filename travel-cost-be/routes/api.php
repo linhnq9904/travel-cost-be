@@ -44,5 +44,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('trips/{tripId}/expenses', [ExpenseController::class, 'store']);
         Route::get('trips/{tripId}/expenses', [ExpenseController::class, 'index']);
+        Route::get('trips/{tripId}/expenses/{expenseId}', [ExpenseController::class, 'show']);
     });
 });
