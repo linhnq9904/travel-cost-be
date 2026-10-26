@@ -60,15 +60,6 @@ class StoreExpenseRequest extends FormRequest
                 Rule::exists('trip_members', 'user_id')
                     ->where('trip_id', $tripId)
             ],
-            'participants' => ['required', 'array', 'min:1'],
-
-            'participants.*' => [
-                'required',
-                'uuid',
-                'distinct',
-                Rule::exists('trip_members', 'user_id')
-                    ->where('trip_id', $tripId),
-            ],
         ];
     }
 }

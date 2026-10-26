@@ -47,5 +47,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('trips/{tripId}/expenses/{expenseId}', [ExpenseController::class, 'show']);
         Route::patch('trips/{tripId}/expenses/{expenseId}', [ExpenseController::class, 'update']);
         Route::delete('trips/{tripId}/expenses/{expenseId}', [ExpenseController::class, 'destroy']);
+        Route::put('trips/{tripId}/expenses/{expenseId}/participants', [ExpenseController::class, 'updateParticipants']);
     });
 });
