@@ -51,7 +51,7 @@ class StoreExpenseRequest extends FormRequest
                     ->where('trip_id', $tripId),
             ],
             'description' => 'nullable|string|max:255',
-            'title' => 'required|string|max:225',
+            'title' => 'required|string|max:255',
             'amount' => 'required|numeric|gt:0|decimal:0,2|max:9999999999.99',
             'expense_date' => 'required|date',
             'paid_by' => [
@@ -59,7 +59,16 @@ class StoreExpenseRequest extends FormRequest
                 'uuid',
                 Rule::exists('trip_members', 'user_id')
                     ->where('trip_id', $tripId)
-            ]
+            ],
+            'participants' => ['required', 'array', 'min:1'],
+
+            'participants.*' => [
+                'required',
+                'uuid',
+                'distinct',
+                Rule::exists('trip_members', 'user_id')
+                    ->where('trip_id', $tripId),
+            ],
         ];
     }
 }

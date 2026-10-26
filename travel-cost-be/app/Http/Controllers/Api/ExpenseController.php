@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
+use App\Models\ExpenseParticipant;
 use App\Http\Requests\Expense\StoreExpenseRequest;
 use App\Http\Requests\Expense\UpdateExpenseRequest;
 use App\Models\IdempotencyKey;
@@ -24,14 +25,20 @@ class ExpenseController extends Controller
         $data['trip_id'] = $request->route('tripId');
         $userId = $request->user()->id;
 
+        sort($data['participants'], SORT_STRING);
+
         ksort($data);
 
         $requestHash = hash(
             'sha256',
             json_encode($data, JSON_THROW_ON_ERROR)
         );
+
+        $participantIds = $data['participants'];
+        unset($data['participants']);
+
         try {
-            $expense = DB::transaction(function () use ($data, $userId, $idempotencyKey, $requestHash) {
+            $expense = DB::transaction(function () use ($data, $userId, $idempotencyKey, $requestHash, $participantIds) {
                 // Đăng ký key trước khi tạo khoản chi.
                 $keyRecord = IdempotencyKey::create([
                     'user_id' => $userId,
@@ -39,9 +46,39 @@ class ExpenseController extends Controller
                     'key' => $idempotencyKey,
                     'request_hash' => $requestHash,
                     'expense_id' => null,
+
                 ]);
 
                 $expense = Expense::create($data);
+
+                [$whole, $fraction] = array_pad(
+                    explode('.', (string) $data['amount'], 2),
+                    2,
+                    ''
+                );
+
+                $totalUnits = (int) $whole * 100 + (int) str_pad($fraction, 2, '0');
+
+                $count = count($participantIds);
+                $baseShare = intdiv($totalUnits, $count);
+                $remainder = $totalUnits % $count;
+
+                foreach ($participantIds as $index => $participantId) {
+                    $shareUnits = $baseShare + ($index < $remainder ? 1 : 0);
+
+                    $shareAmount = intdiv($shareUnits, 100)
+                        . '.'
+                        . str_pad((string) ($shareUnits % 100), 2, '0', STR_PAD_LEFT);
+
+                    ExpenseParticipant::create([
+                        'expense_id' => $expense->id,
+                        'user_id' => $participantId,
+                        'share_type' => 'Equal',
+                        'share_percent' => null,
+                        'share_amount' => $shareAmount,
+                    ]);
+                }
+
 
                 // Gắn key với khoản chi vừa tạo.
                 $keyRecord->update([
@@ -91,12 +128,17 @@ class ExpenseController extends Controller
                     'message' => 'Không tìm thấy khoản chi gắn với key này.',
                 ], 409);
             }
-
+            $existingExpense->load('participants');
             return response()->json([
                 'message' => 'Yêu cầu đã được xử lý trước đó.',
                 'data' => $existingExpense,
             ], 200);
         }
+        $expense->load('participants');
+        return response()->json([
+            'message' => 'Expense created successfully',
+            'data' => $expense,
+        ], 201);
     }
     public function index(Request $request)
     {
