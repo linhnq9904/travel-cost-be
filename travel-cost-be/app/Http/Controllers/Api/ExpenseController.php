@@ -146,4 +146,20 @@ class ExpenseController extends Controller
         ]);
 
     }
+    public function destroy(Request $request, $tripId)
+    {
+        $tripId = $request->route('tripId');
+        $expenseId = $request->route('expenseId');
+
+        $expense = Expense::query()
+            ->where('trip_id', $tripId)
+            ->where('id', $expenseId)
+            ->firstOrFail();
+
+        $expense->delete();
+
+        return response()->json([
+            'message' => 'Expense deleted successfully',
+        ]);
+    }
 }
