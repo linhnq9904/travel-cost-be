@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\TripMemberController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\TripBalanceController;
 use App\Http\Middleware\EnsureTripMember;
 use Illuminate\Support\Facades\Route;
 
@@ -31,22 +32,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('trips', TripController::class);
 
-    Route::middleware(EnsureTripMember::class)->group(function () {
-        Route::post('trips/{tripId}/members', [TripMemberController::class, 'store']);
-        Route::get('trips/{tripId}/members', [TripMemberController::class, 'tripMembers']);
-        Route::delete('trips/{tripId}/members/{userId}', [TripMemberController::class, 'destroy']);
-        Route::patch('trips/{tripId}/members/{userId}', [TripMemberController::class, 'update']);
+    Route::prefix('trips/{tripId}')
+        ->middleware(EnsureTripMember::class)
+        ->group(function () {
+            Route::post('/members', [TripMemberController::class, 'store']);
+            Route::get('/members', [TripMemberController::class, 'tripMembers']);
+            Route::delete('/members/{userId}', [TripMemberController::class, 'destroy']);
+            Route::patch('/members/{userId}', [TripMemberController::class, 'update']);
 
-        Route::post('trips/{tripId}/expense-categories', [ExpenseCategoryController::class, 'store']);
-        Route::get('trips/{tripId}/expense-categories', [ExpenseCategoryController::class, 'index']);
-        Route::patch('trips/{tripId}/expense-categories/{categoryId}', [ExpenseCategoryController::class, 'update']);
-        Route::delete('trips/{tripId}/expense-categories/{categoryId}', [ExpenseCategoryController::class, 'destroy']);
+            Route::post('/expense-categories', [ExpenseCategoryController::class, 'store']);
+            Route::get('/expense-categories', [ExpenseCategoryController::class, 'index']);
+            Route::patch('/expense-categories/{categoryId}', [ExpenseCategoryController::class, 'update']);
+            Route::delete('/expense-categories/{categoryId}', [ExpenseCategoryController::class, 'destroy']);
 
-        Route::post('trips/{tripId}/expenses', [ExpenseController::class, 'store']);
-        Route::get('trips/{tripId}/expenses', [ExpenseController::class, 'index']);
-        Route::get('trips/{tripId}/expenses/{expenseId}', [ExpenseController::class, 'show']);
-        Route::patch('trips/{tripId}/expenses/{expenseId}', [ExpenseController::class, 'update']);
-        Route::delete('trips/{tripId}/expenses/{expenseId}', [ExpenseController::class, 'destroy']);
-        Route::put('trips/{tripId}/expenses/{expenseId}/participants', [ExpenseController::class, 'updateParticipants']);
-    });
+            Route::post('/expenses', [ExpenseController::class, 'store']);
+            Route::get('/expenses', [ExpenseController::class, 'index']);
+            Route::get('/expenses/{expenseId}', [ExpenseController::class, 'show']);
+            Route::patch('/expenses/{expenseId}', [ExpenseController::class, 'update']);
+            Route::delete('/expenses/{expenseId}', [ExpenseController::class, 'destroy']);
+            Route::put('/expenses/{expenseId}/participants', [ExpenseController::class, 'updateParticipants']);
+
+            Route::get('/balances', [TripBalanceController::class, 'index']);
+        });
 });
