@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
-use App\Models\ExpenseParticipant;
 use App\Http\Requests\Expense\StoreExpenseRequest;
 use App\Http\Requests\Expense\UpdateExpenseRequest;
 use App\Http\Requests\Expense\UpdateExpenseParticipantsRequest;
@@ -46,7 +45,7 @@ class ExpenseController extends Controller
                 ]);
 
                 $expense = Expense::create($data);
-                
+
                 // Gắn key với khoản chi vừa tạo.
                 $keyRecord->update([
                     'expense_id' => $expense->id,
@@ -133,8 +132,6 @@ class ExpenseController extends Controller
             ->with('participants')
             ->firstOrFail();
 
-        $expenses->load('participants');
-
         return response()->json([
             'Message' => 'Expenses retrieved successfully',
             'data' => $expenses,
@@ -144,19 +141,58 @@ class ExpenseController extends Controller
     {
         $tripId = $request->route('tripId');
         $expenseId = $request->route('expenseId');
+        $data = $request->validated();
 
-        $expense = Expense::query()
-            ->where('trip_id', $tripId)
-            ->where('id', $expenseId)
-            ->firstOrFail();
+        $expense = DB::transaction(function () use ($tripId, $expenseId, $data) {
+            $expense = Expense::query()
+                ->where('trip_id', $tripId)
+                ->where('id', $expenseId)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $expense->update($data);
+            if ($expense->wasChanged('amount')) {
+                $participants = $expense->participants()
+                    ->orderBy('user_id')
+                    ->get();
+                if ($participants->isNotEmpty()) {
+                    [$whole, $fraction] = array_pad(
+                        explode('.', (string) $expense->amount, 2),
+                        2,
+                        ''
+                    );
 
-        $expense->update($request->validated());
+                    $totalUnits = (int) $whole * 100
+                        + (int) str_pad($fraction, 2, '0');
+
+                    $count = $participants->count();
+                    $baseShare = intdiv($totalUnits, $count);
+                    $remainder = $totalUnits % $count;
+                    foreach ($participants as $index => $participant) {
+                        $shareUnits = $baseShare
+                            + ($index < $remainder ? 1 : 0);
+
+                        $shareAmount = intdiv($shareUnits, 100)
+                            . '.'
+                            . str_pad(
+                                (string) ($shareUnits % 100),
+                                2,
+                                '0',
+                                STR_PAD_LEFT
+                            );
+
+                        $participant->update([
+                            'share_amount' => $shareAmount,
+                        ]);
+                    }
+                }
+            }
+            return $expense;
+        });
 
         return response()->json([
             'message' => 'Expense updated successfully',
-            'data' => $expense->fresh(),
+            'data' => $expense->fresh('participants'),
         ]);
-
     }
     public function destroy(Request $request, $tripId)
     {
@@ -227,7 +263,6 @@ class ExpenseController extends Controller
                     'share_amount' => $shareAmount,
                 ]);
             }
-
             return $expense->load('participants');
         });
 
