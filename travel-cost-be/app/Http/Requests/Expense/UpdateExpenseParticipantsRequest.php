@@ -32,14 +32,37 @@ class UpdateExpenseParticipantsRequest extends FormRequest
         $tripId = $this->route("tripId");
 
         return [
+            'split_type' => [
+                'required',
+                Rule::in(['Equal', 'Percentage', 'Fixed']),
+            ],
+
             'participants' => ['required', 'array', 'min:1'],
 
-            'participants.*' => [
+            'participants.*' => ['required', 'array:user_id,share_percent,share_amount'],
+
+            'participants.*.user_id' => [
                 'required',
                 'uuid',
                 'distinct',
                 Rule::exists('trip_members', 'user_id')
                     ->where('trip_id', $tripId),
+            ],
+            'participants.*.share_percent' => [
+                'exclude_unless:split_type,Percentage',
+                'required',
+                'numeric',
+                'decimal:0,2',
+                'gt:0',
+                'max:100',
+            ],
+
+            'participants.*.share_amount' => [
+                'exclude_unless:split_type,Fixed',
+                'required',
+                'numeric',
+                'decimal:0,2',
+                'gt:0',
             ],
         ];
     }

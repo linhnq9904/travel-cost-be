@@ -11,7 +11,6 @@ use App\Models\IdempotencyKey;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Nette\Schema\Message;
 
 class ExpenseController extends Controller
 {
@@ -79,7 +78,7 @@ class ExpenseController extends Controller
 
             if ($existingKey->request_hash !== $requestHash) {
                 return response()->json([
-                    'message' => 'Idempotency-Key đã được dùng với dữ liệu khác.',
+                    'message' => 'This Idempotency-Key has already been used with different request data.',
                 ], 409);
             }
 
@@ -91,12 +90,12 @@ class ExpenseController extends Controller
 
             if (!$existingExpense) {
                 return response()->json([
-                    'message' => 'Không tìm thấy khoản chi gắn với key này.',
+                    'message' => 'The expense associated with this key could not be found.',
                 ], 409);
             }
             $existingExpense->load('participants');
             return response()->json([
-                'message' => 'Yêu cầu đã được xử lý trước đó.',
+                'message' => 'This request has already been processed.',
                 'data' => $existingExpense,
             ], 200);
         }
@@ -117,7 +116,7 @@ class ExpenseController extends Controller
             ->paginate(15);
 
         return response()->json([
-            'Message' => 'Expenses retrieved successfully',
+            'message' => 'Expenses retrieved successfully',
             'data' => $expenses,
         ]);
     }
@@ -133,7 +132,7 @@ class ExpenseController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'Message' => 'Expenses retrieved successfully',
+            'message' => 'Expenses retrieved successfully',
             'data' => $expenses,
         ]);
     }
@@ -154,6 +153,11 @@ class ExpenseController extends Controller
                 $participants = $expense->participants()
                     ->orderBy('user_id')
                     ->get();
+                if ($participants->contains('share_type', 'Fixed')) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'amount' => 'The expense amount cannot be changed while using Fixed splitting.',
+                    ]);
+                }
                 if ($participants->isNotEmpty()) {
                     [$whole, $fraction] = array_pad(
                         explode('.', (string) $expense->amount, 2),
@@ -215,10 +219,15 @@ class ExpenseController extends Controller
         $tripId = $request->route('tripId');
         $expenseId = $request->route('expenseId');
 
-        $participantIds = $request->validated()['participants'];
-        sort($participantIds, SORT_STRING);
+        $data = $request->validated();
+        $splitType = $data['split_type'];
+        $participants = $data['participants'];
 
-        $expense = DB::transaction(function () use ($tripId, $expenseId, $participantIds) {
+        usort($participants, function ($a, $b) {
+            return strcmp($a['user_id'], $b['user_id']);
+        });
+
+        $expense = DB::transaction(function () use ($tripId, $expenseId, $splitType, $participants) {
             // Tìm và khóa khoản chi trong lúc chia lại.
             $expense = Expense::query()
                 ->where('trip_id', $tripId)
@@ -236,16 +245,58 @@ class ExpenseController extends Controller
             $totalUnits = (int) $whole * 100
                 + (int) str_pad($fraction, 2, '0');
 
-            $count = count($participantIds);
-            $baseShare = intdiv($totalUnits, $count);
-            $remainder = $totalUnits % $count;
+            $shares = [];
 
+            if ($splitType === 'Equal') {
+                $count = count($participants);
+                $baseShare = intdiv($totalUnits, $count);
+                $remainder = $totalUnits % $count;
+
+                foreach ($participants as $index => $participant) {
+                    $shareUnits = $baseShare
+                        + ($index < $remainder ? 1 : 0);
+
+                    $shares[] = [
+                        'user_id' => $participant['user_id'],
+                        'share_type' => 'Equal',
+                        'share_percent' => null,
+                        'share_units' => $shareUnits,
+                    ];
+                }
+            } elseif ($splitType === 'Percentage') {
+                abort(422, 'Percentage splitting is not implemented yet.');
+            } elseif ($splitType === 'Fixed') {
+                $sumUnits = 0;
+
+                foreach ($participants as $participant) {
+                    [$whole, $fraction] = array_pad(
+                        explode('.', (string) $participant['share_amount'], 2),
+                        2,
+                        ''
+                    );
+
+                    $shareUnits = (int) $whole * 100
+                        + (int) str_pad($fraction, 2, '0');
+
+                    $sumUnits += $shareUnits;
+                    $shares[] = [
+                        'user_id' => $participant['user_id'],
+                        'share_type' => 'Fixed',
+                        'share_percent' => null,
+                        'share_units' => $shareUnits,
+                    ];
+                }
+                if ($sumUnits !== $totalUnits) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'participants' => 'The total split amount must equal the expense amount.',
+                    ]);
+                }
+            }
             // Chỉ xóa phần chia của khoản chi đang xử lý.
             $expense->participants()->delete();
 
-            foreach ($participantIds as $index => $participantId) {
-                $shareUnits = $baseShare
-                    + ($index < $remainder ? 1 : 0);
+            foreach ($shares as $share) {
+                $shareUnits = $share['share_units'];
 
                 $shareAmount = intdiv($shareUnits, 100)
                     . '.'
@@ -257,9 +308,9 @@ class ExpenseController extends Controller
                     );
 
                 $expense->participants()->create([
-                    'user_id' => $participantId,
-                    'share_type' => 'Equal',
-                    'share_percent' => null,
+                    'user_id' => $share['user_id'],
+                    'share_type' => $share['share_type'],
+                    'share_percent' => $share['share_percent'],
                     'share_amount' => $shareAmount,
                 ]);
             }
