@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\TripBalanceController;
 use App\Http\Middleware\EnsureTripMember;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\EnsureUserIsActive;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
@@ -17,11 +18,11 @@ Route::prefix('auth')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('me', [AuthController::class, 'me']);
+        Route::get('me', [AuthController::class, 'me'])->middleware(EnsureUserIsActive::class);
     });
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function () {
     Route::get('user', [UserController::class, 'user']);
     Route::get('user/{id}', [UserController::class, 'show']);
     Route::put('user', [UserController::class, 'update']);

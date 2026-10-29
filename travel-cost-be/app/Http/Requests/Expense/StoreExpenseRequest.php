@@ -33,6 +33,13 @@ class StoreExpenseRequest extends FormRequest
         $this->merge([
             'idempotency_key' => $this->header('Idempotency-Key'),
         ]);
+        $payer = $this->input('paid_by');
+
+        if (is_string($payer)) {
+            $this->merge([
+                'paid_by' => strtolower(trim($payer)),
+            ]);
+        }
     }
 
     public function rules(): array

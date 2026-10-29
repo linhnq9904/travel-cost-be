@@ -27,6 +27,27 @@ class UpdateExpenseParticipantsRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    protected function prepareForValidation(): void
+    {
+        $rows = $this->input('participants');
+
+        if (!is_array($rows)) {
+            return;
+        }
+
+        foreach ($rows as $index => $row) {
+            if (
+                is_array($row)
+                && isset($row['user_id'])
+                && is_string($row['user_id'])
+            ) {
+                $rows[$index]['user_id'] =
+                    strtolower(trim($row['user_id']));
+            }
+        }
+
+        $this->merge(['participants' => $rows]);
+    }
     public function rules(): array
     {
         $tripId = $this->route("tripId");

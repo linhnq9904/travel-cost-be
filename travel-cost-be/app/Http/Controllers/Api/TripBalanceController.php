@@ -19,6 +19,7 @@ class TripBalanceController extends Controller
 
         $balances = [];
         foreach ($expenses as $expense) {
+            $payerId = strtolower($expense->paid_by);
             $payerId = $expense->paid_by;
             $balances[$payerId] ??= 0;
             [$whole, $fraction] = array_pad(
@@ -31,6 +32,7 @@ class TripBalanceController extends Controller
                 + (int) str_pad($fraction, 2, '0');
             $balances[$payerId] += $totalUnits;
             foreach ($expense->participants as $participant) {
+                $userId = strtolower($participant->user_id);
                 $userId = $participant->user_id;
                 $balances[$userId] ??= 0;
                 [$whole, $fraction] = array_pad(

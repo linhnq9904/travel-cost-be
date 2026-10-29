@@ -10,6 +10,7 @@ use App\Http\Requests\Expense\UpdateExpenseParticipantsRequest;
 use App\Models\IdempotencyKey;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
@@ -33,7 +34,6 @@ class ExpenseController extends Controller
 
         try {
             $expense = DB::transaction(function () use ($data, $userId, $idempotencyKey, $requestHash) {
-                // Đăng ký key trước khi tạo khoản chi.
                 $keyRecord = IdempotencyKey::create([
                     'user_id' => $userId,
                     'trip_id' => $data['trip_id'],
@@ -45,15 +45,13 @@ class ExpenseController extends Controller
 
                 $expense = Expense::create($data);
 
-                // Gắn key với khoản chi vừa tạo.
                 $keyRecord->update([
                     'expense_id' => $expense->id,
                 ]);
 
                 return $expense;
             });
-        } catch (QueryException $e) {
-            // Chỉ xử lý lỗi trùng đúng unique index của idempotency.
+        } catch (UniqueConstraintViolationException $e) {
             $isDuplicateKey =
                 (int) ($e->errorInfo[1] ?? 0) === 1062
                 && str_contains(
