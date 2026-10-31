@@ -9,7 +9,6 @@ use App\Http\Requests\Expense\UpdateExpenseRequest;
 use App\Http\Requests\Expense\UpdateExpenseParticipantsRequest;
 use App\Models\IdempotencyKey;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 
@@ -31,6 +30,7 @@ class ExpenseController extends Controller
             'sha256',
             json_encode($data, JSON_THROW_ON_ERROR)
         );
+        $keyInserted = false;
 
         try {
             $expense = DB::transaction(function () use ($data, $userId, $idempotencyKey, $requestHash) {
@@ -40,9 +40,11 @@ class ExpenseController extends Controller
                     'key' => $idempotencyKey,
                     'request_hash' => $requestHash,
                     'expense_id' => null,
+                    &
+                    $keyInserted,
 
                 ]);
-
+                $keyInserted = true;
                 $expense = Expense::create($data);
 
                 $keyRecord->update([
@@ -52,14 +54,7 @@ class ExpenseController extends Controller
                 return $expense;
             });
         } catch (UniqueConstraintViolationException $e) {
-            $isDuplicateKey =
-                (int) ($e->errorInfo[1] ?? 0) === 1062
-                && str_contains(
-                    $e->errorInfo[2] ?? '',
-                    'idempotency_user_trip_key_unique'
-                );
-
-            if (!$isDuplicateKey) {
+            if ($keyInserted) {
                 throw $e;
             }
 
