@@ -48,7 +48,7 @@ class UpdateExpenseRequest extends FormRequest
                 Rule::exists('trip_members', 'user_id')
                     ->where('trip_id', $tripId),
             ],
-            'amount' => ['sometimes', 'required', 'numeric', 'gt:0', 'decimal:0,2'],
+            'amount' => ['sometimes', 'required', 'numeric', 'gt:0', 'decimal:0,2', 'max:9999999999.99'],
             'expense_date' => ['sometimes', 'required', 'date'],
         ];
     }

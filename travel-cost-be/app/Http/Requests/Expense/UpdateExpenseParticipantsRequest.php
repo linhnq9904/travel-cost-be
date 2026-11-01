@@ -84,6 +84,7 @@ class UpdateExpenseParticipantsRequest extends FormRequest
                 'numeric',
                 'decimal:0,2',
                 'gt:0',
+                'max:9999999999.99',
             ],
         ];
     }
