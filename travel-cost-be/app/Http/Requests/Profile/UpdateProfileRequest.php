@@ -20,15 +20,29 @@ class UpdateProfileRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    protected function prepareForValidation(): void
+    {
+        $gender = $this->input('gender');
+
+        if (is_string($gender)) {
+            $this->merge([
+                'gender' => strtoupper(trim($gender)),
+            ]);
+        }
+    }
     public function rules(): array
     {
         return [
-            // 'user_id' => 'sometimes|exists:users,id',
             'full_name' => 'sometimes|required|string|max:255',
             'avatar' => 'sometimes|nullable|string|max:255',
             'phone' => 'sometimes|nullable|string|regex:/^[0-9]{10,11}$/',
             'date_of_birth' => 'sometimes|nullable|date_format:Y-m-d|before:today',
-            'gender' => 'sometimes|nullable|in:male,female,other',
+            'gender' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'in:MALE,FEMALE,OTHER',
+            ],
             'address' => 'sometimes|nullable|string|max:500',
         ];
     }
