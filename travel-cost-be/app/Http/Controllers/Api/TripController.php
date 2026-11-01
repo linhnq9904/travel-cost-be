@@ -10,10 +10,13 @@ use App\Models\Trip;
 use App\Models\TripMember;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
+use App\Models\IdempotencyKey;
+use Illuminate\Support\Facades\DB;
 
 class TripController extends Controller
 {
-    // Lấy danh sách chuyến đi của user hiện tại
     public function index(Request $request)
     {
         $user = $request->user();
@@ -25,7 +28,6 @@ class TripController extends Controller
         return TripResource::collection($trips);
     }
 
-    // Tạo chuyến đi mới
     public function store(StoreTripRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -48,7 +50,6 @@ class TripController extends Controller
         ], 201);
     }
 
-    // Lấy chi tiết 1 chuyến đi
     public function show(Request $request, Trip $trip): JsonResponse
     {
         // Kiểm tra user có quyền xem trip này không
@@ -65,7 +66,6 @@ class TripController extends Controller
         ]);
     }
 
-    // Cập nhật chuyến đi
     public function update(UpdateTripRequest $request, Trip $trip): JsonResponse
     {
         // Chỉ owner mới có quyền sửa
@@ -84,17 +84,36 @@ class TripController extends Controller
         ]);
     }
 
-    // Xóa chuyến đi
     public function destroy(Request $request, Trip $trip): JsonResponse
     {
-        // Chỉ owner mới có quyền xóa
         if ($trip->owner_id !== $request->user()->id) {
             return response()->json([
                 'message' => 'Chỉ chủ chuyến đi mới có quyền xóa',
             ], 403);
         }
 
-        $trip->delete();
+        DB::transaction(function () use ($trip) {
+            $lockedTrip = Trip::query()
+                ->whereKey($trip->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // Xóa key trước vì key tham chiếu tới trip và expense.
+            IdempotencyKey::query()
+                ->where('trip_id', $lockedTrip->id)
+                ->delete();
+
+            // Xóa expense trước category vì category đang bị restrictOnDelete.
+            Expense::query()
+                ->where('trip_id', $lockedTrip->id)
+                ->delete();
+
+            ExpenseCategory::query()
+                ->where('trip_id', $lockedTrip->id)
+                ->delete();
+
+            $lockedTrip->delete();
+        });
 
         return response()->json([
             'message' => 'Chuyến đi được xóa thành công',
