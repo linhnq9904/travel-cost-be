@@ -4,7 +4,7 @@ namespace App\Http\Requests\ExpenseCategory;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Validation\Rule;
 class StoreExpenseCategoryRequest extends FormRequest
 {
     /**
@@ -23,7 +23,13 @@ class StoreExpenseCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:100|unique:expense_categories,name',
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('expense_categories', 'name')
+                    ->where('trip_id', $this->route('tripId')),
+            ],
             'icon' => 'nullable|string|max:100',
             'color' => 'nullable|string|max:20',
         ];
