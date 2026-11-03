@@ -37,7 +37,6 @@ class TripController extends Controller
             ...$validated,
         ]);
 
-        // Tự động thêm owner vào trip_members với role Owner
         TripMember::create([
             'trip_id' => $trip->id,
             'user_id' => $request->user()->id,
@@ -45,19 +44,18 @@ class TripController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Chuyến đi được tạo thành công',
+            'message' => 'Trip created successfully.',
             'data' => new TripResource($trip->load(['owner', 'owner.profile', 'members'])),
         ], 201);
     }
 
     public function show(Request $request, Trip $trip): JsonResponse
     {
-        // Kiểm tra user có quyền xem trip này không
         $isMember = $trip->members->contains('user_id', $request->user()->id);
 
         if (!$isMember) {
             return response()->json([
-                'message' => 'Bạn không có quyền xem chuyến đi này',
+                'message' => 'You are not authorized to view this trip.',
             ], 403);
         }
 
@@ -68,10 +66,9 @@ class TripController extends Controller
 
     public function update(UpdateTripRequest $request, Trip $trip): JsonResponse
     {
-        // Chỉ owner mới có quyền sửa
         if ($trip->owner_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Chỉ chủ chuyến đi mới có quyền chỉnh sửa',
+                'message' => 'Only the trip owner can update this trip.',
             ], 403);
         }
 
@@ -79,7 +76,7 @@ class TripController extends Controller
         $trip->update($validated);
 
         return response()->json([
-            'message' => 'Chuyến đi được cập nhật thành công',
+            'message' => 'Trip updated successfully.',
             'data' => new TripResource($trip->load(['owner', 'owner.profile', 'members'])),
         ]);
     }
@@ -88,7 +85,7 @@ class TripController extends Controller
     {
         if ($trip->owner_id !== $request->user()->id) {
             return response()->json([
-                'message' => 'Chỉ chủ chuyến đi mới có quyền xóa',
+                'message' => 'Only the trip owner can delete this trip.',
             ], 403);
         }
 
@@ -98,12 +95,10 @@ class TripController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            // Xóa key trước vì key tham chiếu tới trip và expense.
             IdempotencyKey::query()
                 ->where('trip_id', $lockedTrip->id)
                 ->delete();
 
-            // Xóa expense trước category vì category đang bị restrictOnDelete.
             Expense::query()
                 ->where('trip_id', $lockedTrip->id)
                 ->delete();
@@ -116,7 +111,7 @@ class TripController extends Controller
         });
 
         return response()->json([
-            'message' => 'Chuyến đi được xóa thành công',
+            'message' => 'Trip deleted successfully.',
         ]);
     }
 }
