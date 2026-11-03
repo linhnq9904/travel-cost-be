@@ -41,7 +41,9 @@ class ExpenseCategoryController extends Controller
             ->where('trip_id', $request->route('tripId'))
             ->firstOrFail();
         Gate::authorize('delete', $category);
-        $category->expenses()->exists();
+        if ($category->expenses()->exists()) {
+            return response()->json(['message' => 'Category is in use'], 409);
+        }
         $category->delete();
         return response()->json(['message' => 'Expense category deleted successfully'], 200);
     }
