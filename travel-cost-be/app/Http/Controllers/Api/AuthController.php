@@ -32,7 +32,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Đăng ký thành công',
+            'message' => 'Registration successful.',
             'user' => $user->load('profile'),
             'token' => $token,
         ], 201);
@@ -44,15 +44,15 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (! $user || ! Hash::check($validated['password'], $user->password)) {
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Email hoặc mật khẩu không đúng.'],
+                'email' => ['The email or password is incorrect.'],
             ]);
         }
 
         if ($user->status !== 'ACTIVE') {
             throw ValidationException::withMessages([
-                'email' => ['Tài khoản của bạn hiện không hoạt động.'],
+                'email' => ['Your account is not active.'],
             ]);
         }
 
@@ -61,7 +61,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Đăng nhập thành công',
+            'message' => 'Login successful.',
             'user' => $user->load('profile'),
             'token' => $token,
         ]);
@@ -72,7 +72,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Đăng xuất thành công',
+            'message' => 'Logout successful.',
         ]);
     }
 

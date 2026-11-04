@@ -4,6 +4,8 @@ namespace App\Http\Requests\User;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
+
 
 class UpdateUserRequest extends FormRequest
 {
@@ -20,6 +22,16 @@ class UpdateUserRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    protected function prepareForValidation(): void
+    {
+        $email = $this->input('email');
+
+        if (is_string($email)) {
+            $this->merge([
+                'email' => Str::lower(trim($email)),
+            ]);
+        }
+    }
     public function rules(): array
     {
         $userId = $this->user()->id;
