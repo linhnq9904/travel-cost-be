@@ -21,7 +21,16 @@ class UpdateExpenseRequest extends FormRequest
             ->where('user_id', $userId)
             ->exists();
     }
+    protected function prepareForValidation(): void
+    {
+        $payer = $this->input('paid_by');
 
+        if (is_string($payer)) {
+            $this->merge([
+                'paid_by' => strtolower(trim($payer)),
+            ]);
+        }
+    }
     /**
      * Get the validation rules that apply to the request.
      *

@@ -20,7 +20,14 @@ class UpdateTripRequest extends FormRequest
             'destination' => ['sometimes', 'required', 'string', 'max:255'],
             'start_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
             'end_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
-            'budget' => ['sometimes', 'required', 'numeric', 'min:0'],
+            'budget' => [
+                'sometimes',
+                'required',
+                'numeric',
+                'min:0',
+                'decimal:0,2',
+                'max:9999999999999.99',
+            ],
             'currency' => ['sometimes', 'required', 'string', 'max:10'],
             'status' => [
                 'sometimes',

@@ -9,6 +9,7 @@ use App\Http\Requests\TripMember\StoreTripMemberRequest;
 use App\Http\Requests\TripMember\UpdateTripMemberRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class TripMemberController extends Controller
 {
@@ -25,18 +26,36 @@ class TripMemberController extends Controller
             ->exists();
 
         if ($exists) {
-            return response()->json(['message' => 'Người dùng đã là thành viên của chuyến đi này'], 409);
+            return response()->json([
+                'message' => 'The user is already a member of this trip.',
+            ], 409);
         }
 
-        $member = TripMember::create([
-            'trip_id' => $tripId,
-            'user_id' => $validated['user_id'],
-            'role' => $validated['role'] ?? 'Member',
-            'joined_at' => now(),
-        ]);
+        try {
+            $member = TripMember::create([
+                'trip_id' => $tripId,
+                'user_id' => $validated['user_id'],
+                'role' => $validated['role'] ?? 'Member',
+                'joined_at' => now(),
+            ]);
+        } catch (UniqueConstraintViolationException $e) {
+            $membershipExists = TripMember::query()
+                ->useWritePdo()
+                ->where('trip_id', $tripId)
+                ->where('user_id', $validated['user_id'])
+                ->exists();
+
+            if (!$membershipExists) {
+                throw $e;
+            }
+
+            return response()->json([
+                'message' => 'The user is already a member of this trip.',
+            ], 409);
+        }
 
         return response()->json([
-            'message' => 'Thêm thành viên thành công',
+            'message' => 'Created trip member successfully',
             'data' => $member,
         ], 201);
 
@@ -62,7 +81,7 @@ class TripMemberController extends Controller
 
         $member->delete();
 
-        return response()->json(['message' => 'Xóa thành viên thành công'], 200);
+        return response()->json(['message' => 'Deleted trip member successfully'], 200);
     }
 
     public function update(UpdateTripMemberRequest $request, $tripId, $userId)
@@ -78,7 +97,7 @@ class TripMemberController extends Controller
         $member->update($validated);
 
         return response()->json([
-            'message' => 'Cập nhật vai trò thành viên thành công',
+            'message' => 'Updated trip member successfully',
             'data' => $member,
         ], 200);
     }

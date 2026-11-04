@@ -21,7 +21,6 @@ class ExpenseCategoryResource extends JsonResource
             'color' => $this->color,
             'trip_id' => $this->trip_id,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

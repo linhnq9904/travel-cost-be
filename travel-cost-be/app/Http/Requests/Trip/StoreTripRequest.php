@@ -19,7 +19,14 @@ class StoreTripRequest extends FormRequest
             'destination' => ['required', 'string', 'max:255'],
             'start_date' => ['required', 'date', 'before:end_date'],
             'end_date' => ['required', 'date', 'after:start_date'],
-            'budget' => ['nullable', 'numeric', 'min:0'],
+            'budget' => [
+                'sometimes',
+                'required',
+                'numeric',
+                'min:0',
+                'decimal:0,2',
+                'max:9999999999999.99',
+            ],
             'currency' => ['nullable', 'string', 'max:10'],
         ];
     }
