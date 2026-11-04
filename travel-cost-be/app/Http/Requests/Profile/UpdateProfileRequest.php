@@ -4,6 +4,7 @@ namespace App\Http\Requests\Profile;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProfileRequest extends FormRequest
 {
@@ -35,7 +36,14 @@ class UpdateProfileRequest extends FormRequest
         return [
             'full_name' => 'sometimes|required|string|max:255',
             'avatar' => 'sometimes|nullable|string|max:255',
-            'phone' => 'sometimes|nullable|string|regex:/^[0-9]{10,11}$/',
+            'phone' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'regex:/^[0-9]{10,11}$/',
+                Rule::unique('profiles', 'phone')
+                    ->ignore($this->user()->id, 'user_id'),
+            ],
             'date_of_birth' => 'sometimes|nullable|date_format:Y-m-d|before:today',
             'gender' => [
                 'sometimes',
