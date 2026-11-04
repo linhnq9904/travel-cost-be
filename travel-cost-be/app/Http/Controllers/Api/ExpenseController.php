@@ -33,16 +33,13 @@ class ExpenseController extends Controller
         $keyInserted = false;
 
         try {
-            $expense = DB::transaction(function () use ($data, $userId, $idempotencyKey, $requestHash) {
+            $expense = DB::transaction(function () use ($data, $userId, $idempotencyKey, $requestHash, &$keyInserted) {
                 $keyRecord = IdempotencyKey::create([
                     'user_id' => $userId,
                     'trip_id' => $data['trip_id'],
                     'key' => $idempotencyKey,
                     'request_hash' => $requestHash,
                     'expense_id' => null,
-                    &
-                    $keyInserted,
-
                 ]);
                 $keyInserted = true;
                 $expense = Expense::create($data);
