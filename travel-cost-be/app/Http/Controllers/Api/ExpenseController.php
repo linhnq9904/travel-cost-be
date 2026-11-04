@@ -218,14 +218,12 @@ class ExpenseController extends Controller
         });
 
         $expense = DB::transaction(function () use ($tripId, $expenseId, $splitType, $participants) {
-            // Tìm và khóa khoản chi trong lúc chia lại.
             $expense = Expense::query()
                 ->where('trip_id', $tripId)
                 ->where('id', $expenseId)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            // Lấy số tiền đã lưu, chuyển sang đơn vị 0.01.
             [$whole, $fraction] = array_pad(
                 explode('.', (string) $expense->amount, 2),
                 2,
@@ -282,7 +280,6 @@ class ExpenseController extends Controller
                     ]);
                 }
             }
-            // Chỉ xóa phần chia của khoản chi đang xử lý.
             $expense->participants()->delete();
 
             foreach ($shares as $share) {

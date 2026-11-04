@@ -55,7 +55,7 @@ class UpdateExpenseParticipantsRequest extends FormRequest
         return [
             'split_type' => [
                 'required',
-                Rule::in(['Equal', 'Percentage', 'Fixed']),
+                Rule::in(['Equal', 'Fixed']),
             ],
 
             'participants' => ['required', 'array', 'min:1'],
