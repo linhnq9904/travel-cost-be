@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Resources\UserResource;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Models\TripMember;
 
 class UserController extends Controller
 {
@@ -26,9 +27,26 @@ class UserController extends Controller
         $user->update($validated);
         return new UserResource($user);
     }
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $authUser = $request->user();
+
+        if ($authUser->id !== $user->id) {
+            $sharesTrip = TripMember::query()
+                ->where('user_id', $user->id)
+                ->whereIn(
+                    'trip_id',
+                    TripMember::query()
+                        ->select('trip_id')
+                        ->where('user_id', $authUser->id)
+                )
+                ->exists();
+
+            if (!$sharesTrip) {
+                abort(404, 'User not found.');
+            }
+        }
 
         return new UserResource($user);
     }
