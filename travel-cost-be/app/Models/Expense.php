@@ -21,6 +21,7 @@ class Expense extends Model
         'amount',
         'expense_date',
         'receipt_image',
+        'created_by',
     ];
 
     protected $casts = [

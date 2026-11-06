@@ -59,6 +59,7 @@ class UpdateExpenseRequest extends FormRequest
             ],
             'amount' => ['sometimes', 'required', 'numeric', 'gt:0', 'decimal:0,2', 'max:9999999999.99'],
             'expense_date' => ['sometimes', 'required', 'date'],
+            'created_by' => ['prohibited'],
         ];
     }
 }

@@ -11,6 +11,7 @@ use App\Models\IdempotencyKey;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ExpenseController extends Controller
 {
@@ -42,6 +43,7 @@ class ExpenseController extends Controller
                     'expense_id' => null,
                 ]);
                 $keyInserted = true;
+                $data['created_by'] = $userId;
                 $expense = Expense::create($data);
 
                 $keyRecord->update([
@@ -138,6 +140,7 @@ class ExpenseController extends Controller
                 ->where('id', $expenseId)
                 ->lockForUpdate()
                 ->firstOrFail();
+            Gate::authorize('update', $expense);
             $expense->update($data);
             if ($expense->wasChanged('amount')) {
                 $participants = $expense->participants()
@@ -193,13 +196,17 @@ class ExpenseController extends Controller
         $tripId = $request->route('tripId');
         $expenseId = $request->route('expenseId');
 
-        $expense = Expense::query()
-            ->where('trip_id', $tripId)
-            ->where('id', $expenseId)
-            ->firstOrFail();
+        DB::transaction(function () use ($tripId, $expenseId) {
+            $expense = Expense::query()
+                ->where('trip_id', $tripId)
+                ->where('id', $expenseId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $expense->delete();
+            Gate::authorize('delete', $expense);
 
+            $expense->delete();
+        });
         return response()->json([
             'message' => 'Expense deleted successfully',
         ]);
@@ -223,7 +230,7 @@ class ExpenseController extends Controller
                 ->where('id', $expenseId)
                 ->lockForUpdate()
                 ->firstOrFail();
-
+            Gate::authorize('updateParticipants', $expense);
             [$whole, $fraction] = array_pad(
                 explode('.', (string) $expense->amount, 2),
                 2,

@@ -67,6 +67,7 @@ class StoreExpenseRequest extends FormRequest
                 Rule::exists('trip_members', 'user_id')
                     ->where('trip_id', $tripId)
             ],
+            'created_by' => ['prohibited'],
         ];
     }
 }
