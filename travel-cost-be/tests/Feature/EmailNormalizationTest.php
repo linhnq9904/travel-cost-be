@@ -17,6 +17,7 @@ class EmailNormalizationTest extends ApiTestCase
             'password' => 'TestPass123!',
             'password_confirmation' => 'TestPass123!',
             'full_name' => 'Email test',
+            'current_password' => 'password',
         ];
 
         $this->postJson('/api/auth/register', $payload)
@@ -101,12 +102,14 @@ class EmailNormalizationTest extends ApiTestCase
             : "/api/user/{$user->id}";
 
         $this->json(strtoupper($method), $url, [
+            'current_password' => 'password',
             'email' => '  Updated07@Example.Test  ',
         ])
             ->assertOk()
             ->assertJsonPath('data.email', 'updated07@example.test');
 
         $this->json(strtoupper($method), $url, [
+            'current_password' => 'password',
             'email' => 'UPDATED07@EXAMPLE.TEST',
         ])->assertOk();
 
@@ -129,6 +132,7 @@ class EmailNormalizationTest extends ApiTestCase
         Sanctum::actingAs($user);
 
         $this->putJson('/api/user', [
+            'current_password' => 'password',
             'email' => ' TAKEN@EXAMPLE.TEST ',
         ])
             ->assertUnprocessable()
@@ -147,6 +151,7 @@ class EmailNormalizationTest extends ApiTestCase
         Sanctum::actingAs($user);
 
         $this->putJson('/api/user', [
+            'current_password' => 'password',
             'password' => 'ChangedPass123!',
             'password_confirmation' => 'ChangedPass123!',
         ])->assertOk();
@@ -185,6 +190,7 @@ class EmailNormalizationTest extends ApiTestCase
             Sanctum::actingAs($user);
 
             $response = $this->putJson('/api/user', [
+                'current_password' => 'password',
                 'email' => ['invalid'],
             ]);
         } else {

@@ -51,6 +51,21 @@ class UpdateUserRequest extends FormRequest
                 'min:8',
                 'confirmed',
             ],
+            'current_password' => [
+                'required_with:password,email',
+                'string',
+                'current_password:sanctum',
+            ],
+        ];
+    }
+    public function messages(): array
+    {
+        return [
+            'current_password.required_with' =>
+                'The current password is required to change your email or password.',
+
+            'current_password.current_password' =>
+                'The current password is incorrect.',
         ];
     }
 }
