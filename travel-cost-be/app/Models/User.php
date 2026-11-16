@@ -29,6 +29,14 @@ class User extends Authenticatable
         'last_login_at' => 'datetime',
     ];
 
+    public const ROLE_USER = 'USER';
+
+    public const ROLE_ADMIN = 'ADMIN';
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);

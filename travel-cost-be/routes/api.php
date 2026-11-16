@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\TripBalanceController;
 use App\Http\Middleware\EnsureTripMember;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsureSystemAdmin;
+use App\Http\Resources\UserResource;
+use Illuminate\Http\Request;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
@@ -54,5 +57,16 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function (
             Route::put('/expenses/{expenseId}/participants', [ExpenseController::class, 'updateParticipants']);
 
             Route::get('/balances', [TripBalanceController::class, 'index']);
+        });
+    Route::prefix('admin')
+        ->middleware([
+            'auth:sanctum',
+            EnsureUserIsActive::class,
+            EnsureSystemAdmin::class,
+        ])
+        ->group(function () {
+            Route::get('me', function (Request $request) {
+                return new UserResource($request->user());
+            });
         });
 });

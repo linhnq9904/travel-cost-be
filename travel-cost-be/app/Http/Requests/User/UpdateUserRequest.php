@@ -56,6 +56,7 @@ class UpdateUserRequest extends FormRequest
                 'string',
                 'current_password:sanctum',
             ],
+            'role' => ['prohibited'],
         ];
     }
     public function messages(): array
